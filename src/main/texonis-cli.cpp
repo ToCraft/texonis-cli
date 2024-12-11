@@ -122,10 +122,9 @@ int main(int argc, char* argv[]) {
 		if (interactive) {
 			std::cout << "Using interactive text mode\n\n";
 			std::string text = system_prompt;
-			std::cout << text;
 			while (true) {
 				try {
-					text += llm.generateMessage(text, output);
+					text += llm.generateText(text, output);
 				} catch (char* e) {
 					std::cout << e;
 					return 1;
@@ -146,8 +145,7 @@ int main(int argc, char* argv[]) {
 		} else {
 			std::cout << "Using text mode\n\n";
 			// Generate
-			std::cout << system_prompt;
-			llm.generateMessage(system_prompt, output);
+			llm.generateText(system_prompt, output);
 		}
 		std::cout << std::endl << std::flush;
 	}

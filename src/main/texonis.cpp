@@ -26,14 +26,18 @@ namespace texonis {
 
    llama_model_params modelParams(int n_gpu_layers) {
 	   llama_model_params model_params = llama_model_default_params();
-	   model_params.n_gpu_layers = n_gpu_layers;
+	   if (n_gpu_layers != -1) {
+		      model_params.n_gpu_layers = n_gpu_layers;
+	   }
 	   return model_params;
    }
 
    llama_context_params contextParams(int n_ctx) {
 	   llama_context_params ctx_params = llama_context_default_params();
-	   ctx_params.n_ctx = n_ctx;
-	   ctx_params.n_batch = n_ctx;
+	   if (n_ctx != -1) {
+		ctx_params.n_ctx = n_ctx;
+		ctx_params.n_batch = n_ctx;
+	   }
 	   return ctx_params;
    }
 
