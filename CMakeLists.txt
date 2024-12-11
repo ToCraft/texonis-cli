@@ -1,32 +1,30 @@
 cmake_minimum_required(VERSION 3.10)
-set(PROJECT_NAME texonis-cli)
+set(LIBRARY_NAME texonis)
+set(PROJECT_NAME ${LIBRARY_NAME}-cli)
 project(${PROJECT_NAME})
 
+file(GLOB_RECURSE sources      src/*)
 
-file(GLOB_RECURSE sources      src/main/* src/main/*)
-file(GLOB_RECURSE sources_test src/test/*)
-file(GLOB_RECURSE data src/resources/*)
+add_library(${LIBRARY_NAME} SHARED ${sources})
+add_executable(${PROJECT_NAME} src/main.cpp)
 
+target_compile_options(${PROJECT_NAME} PUBLIC -std=c++17 -Wall -Wfloat-conversion)
 
-add_executable(${PROJECT_NAME} ${sources} ${data})
+target_include_directories(${PROJECT_NAME} PUBLIC src)
 
-target_compile_options(${PROJECT_NAME} PUBLIC -std=c++1y -Wall -Wfloat-conversion)
-
-target_include_directories(${PROJECT_NAME} PUBLIC src/main)
-
-file(COPY ${data} DESTINATION src/resources)
-
+# Add llama.cpp
 add_subdirectory(llama.cpp)
-target_link_libraries(${PROJECT_NAME} PUBLIC
-  llama
-)
+target_link_libraries(${LIBRARY_NAME} PUBLIC llama)
 
-install(TARGETS "${PROJECT_NAME}" DESTINATION bin)
-install(DIRECTORY src/resources/ DESTINATION "${PROJECT_NAME}")
+target_link_libraries(${PROJECT_NAME} PUBLIC ${LIBRARY_NAME})
 
+# Install the executable and library
+install(TARGETS ${PROJECT_NAME} DESTINATION bin)
+install(TARGETS ${LIBRARY_NAME} DESTINATION lib)
+
+# CPack
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "dev.tocraft")
 set(CPACK_PACKAGE_NAME "Texonis-CLI")
 set(CPACK_PACKAGE_VERSION "1.0.0")
-
-set(CPACK_MONOLITHIC_INSTALL 1)
 
 include(CPack)
