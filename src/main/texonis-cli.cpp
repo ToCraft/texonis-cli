@@ -23,12 +23,14 @@ int main(int argc, char* argv[]) {
 
 	// initialize
 	init();
+
 	Texonis llm = createLlm(model_path, 99, 2048, seed);
 
 	// set system prompt
 	llm.sendMessage("system", "You are an adventure game the user is playing. The game only consists of text. The user is able to say what the main character will do. You will obey the user but still be realistic. For example, when the user wants to fly away but isn't a magician, they are most likely to fail. Briefly describe the environment of the user. Do not list possible actions.");
 	// Generate
-	std::cout << llm.generateMessage("assistent");
+	auto output = [](std::string piece) -> bool {std::cout << piece << std::flush; return true;};
+	llm.generateMessage("assistent", output);
     while (true) {
         // get user input
         printf("\n> ");
@@ -38,19 +40,18 @@ int main(int argc, char* argv[]) {
         if (user.empty()) {
             break;
         }
-        
-        llm.sendMessage("user", user);
+
+        llm.sendMessage("user", user.c_str());
 
         try {
-			std::string response = llm.generateMessage("assistent");
-			std::cout << response;
+			llm.generateMessage("assistent", output);
 		} catch (char* e) {
 			std::cout << e;
 			return 1;
 		}
     }
-	
-	//llm.free();
+
+	llm.free();
 	deInit();
 	return 0;
 }

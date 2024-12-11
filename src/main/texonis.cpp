@@ -60,7 +60,7 @@ namespace texonis {
         return prompt_tokens;
    }
 
-   std::string generate(llama_model* model, llama_context* ctx, llama_sampler* smpl, std::vector<llama_token> prompt_tokens) {
+   std::string generate(llama_model* model, llama_context* ctx, llama_sampler* smpl, std::vector<llama_token> prompt_tokens, std::function<bool(std::string)> func) {
 	   llama_batch batch = llama_batch_get_one(prompt_tokens.data(), prompt_tokens.size());
 	   std::string response;
 	   llama_token new_token_id;
@@ -94,6 +94,7 @@ namespace texonis {
             }
 			std::string piece(buf, n);
             response += piece;
+            func(piece);
 
             // prepare the next batch with the sampled token
             batch = llama_batch_get_one(&new_token_id, 1);
@@ -102,9 +103,9 @@ namespace texonis {
         return response;
    }
 
-    std::string generate(llama_model* model, llama_context* ctx, llama_sampler* smpl, std::string prompt) {
+    std::string generate(llama_model* model, llama_context* ctx, llama_sampler* smpl, std::string prompt, std::function<bool(std::string)> func) {
         std::vector<llama_token> prompt_tokens = tokenize(model, ctx, prompt);
-        return generate(model, ctx, smpl, prompt_tokens);
+        return generate(model, ctx, smpl, prompt_tokens, func);
     }
     
     Texonis createLlm(std::string model_path, int ngl, int n_ctx, long seed) {
@@ -143,16 +144,18 @@ namespace texonis {
 
 	};
 		
-	std::string Texonis::generateText(std::string prompt) {
+	void Texonis::generateText(std::string prompt, std::function<bool(std::string)> func) {
 		std::vector<llama_token> prompt_tokens = tokenize(model, ctx, prompt);
-		return generate(model, ctx, smpl, prompt_tokens);
+		generate(model, ctx, smpl, prompt_tokens, func);
 	}
 	
 	void Texonis::sendMessage(std::string role, std::string message) {
-		messages.push_back({role.c_str(), strdup(message.c_str())});
+		char* r = strdup(role.c_str());
+		char* m = strdup(message.c_str());
+		messages.push_back({r, m});
 	}
 	
-	std::string Texonis::generateMessage(std::string role) {
+	std::string Texonis::generateMessage(std::string role, std::function<bool(std::string)> func) {
 		int new_len = llama_chat_apply_template(model, nullptr, messages.data(), messages.size(), true, formatted.data(), formatted.size());
 		if (new_len > (int)formatted.size()) {
 			formatted.resize(new_len);
@@ -165,7 +168,13 @@ namespace texonis {
 		// remove previous messages to obtain the prompt to generate the response
 		std::string prompt(formatted.begin() + prev_len, formatted.begin() + new_len);
 		// generate a response
-		std::string response = generate(model, ctx, smpl, prompt);
+		std::string response;
+		auto f = [&response, func](std::string piece) -> bool {
+			response += piece;
+			return func(piece);
+		};
+		
+		generate(model, ctx, smpl, prompt, f);
 
 		// add the response to the messages
 		messages.push_back({role.c_str(), strdup(response.c_str())});

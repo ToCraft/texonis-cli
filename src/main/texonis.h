@@ -4,6 +4,7 @@
 #include <vector>
 #include <cstdio>
 #include <cstring>
+#include <functional>
 #include "llama.h"
 
 namespace texonis {
@@ -14,8 +15,8 @@ namespace texonis {
   llama_sampler* createSampler(float minP, size_t minK, float temp, long seed);
   llama_model* loadModel(std::string modelPath, llama_model_params& params);
   std::vector<llama_token> tokenize(llama_model* model, llama_context* ctx, std::string prompt);
-  std::string generate(llama_model* model, llama_context* ctx, llama_sampler* smpl, std::string prompt);
-  std::string generate(llama_model* model, llama_context* ctx, llama_sampler* smpl, std::vector<llama_token> prompt_tokens);
+  std::string generate(llama_model* model, llama_context* ctx, llama_sampler* smpl, std::string prompt, std::function<bool(std::string)> func);
+  std::string generate(llama_model* model, llama_context* ctx, llama_sampler* smpl, std::vector<llama_token> prompt_tokens, std::function<bool(std::string)> func);
   
 	class Texonis {
 		private:
@@ -31,10 +32,10 @@ namespace texonis {
 		public:			
 			Texonis(std::string model_path, llama_model_params model_params, llama_context_params ctx_params, llama_sampler* smpl);
 			
-			std::string generateText(std::string prompt);
+			void generateText(std::string prompt, std::function<bool(std::string)> func);
 			
 			void sendMessage(std::string role, std::string message);
-			std::string generateMessage(std::string role);
+			std::string generateMessage(std::string role, std::function<bool(std::string)> func);
 			
 			void free();
     };
