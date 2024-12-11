@@ -32,7 +32,7 @@ namespace texonis {
 		public:			
 			Texonis(std::string model_path, llama_model_params model_params, llama_context_params ctx_params, llama_sampler* smpl);
 			
-			void generateText(std::string prompt, std::function<bool(std::string)> func);
+			std::string generateText(std::string prompt, std::function<bool(std::string)> func);
 			
 			void sendMessage(std::string role, std::string message);
 			std::string generateMessage(std::string role, std::function<bool(std::string)> func);

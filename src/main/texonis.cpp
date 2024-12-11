@@ -144,9 +144,9 @@ namespace texonis {
 
 	};
 		
-	void Texonis::generateText(std::string prompt, std::function<bool(std::string)> func) {
+	std::string Texonis::generateText(std::string prompt, std::function<bool(std::string)> func) {
 		std::vector<llama_token> prompt_tokens = tokenize(model, ctx, prompt);
-		generate(model, ctx, smpl, prompt_tokens, func);
+		return generate(model, ctx, smpl, prompt_tokens, func);
 	}
 	
 	void Texonis::sendMessage(std::string role, std::string message) {
